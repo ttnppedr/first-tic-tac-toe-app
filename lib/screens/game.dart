@@ -11,6 +11,9 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
+  bool oTurn = true;
+  List<String> displayXO = ['', '', '', '', '', '', '', '', ''];
+
   static var customFontWhite = GoogleFonts.coiny(
     textStyle: const TextStyle(
       color: Colors.white,
@@ -23,9 +26,70 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MainColor.primaryColor,
-      body: Center(
-        child: Text('Tic-Tac-Toe Game', style: customFontWhite),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Center(child: Text('Score Board')),
+            ),
+            Expanded(
+              flex: 3,
+              child: GridView.builder(
+                itemCount: 9,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                ),
+                itemBuilder: (BuildContext context, int index) {
+                  return GestureDetector(
+                    onTap: () {
+                      _tapped(index);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: MainColor.secondaryColor,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          width: 5,
+                          color: MainColor.primaryColor,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          displayXO[index],
+                          style: GoogleFonts.coiny(
+                            textStyle: TextStyle(
+                              fontSize: 64,
+                              color: MainColor.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text('Timer'),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  void _tapped(int index) {
+    setState(() {
+      if (oTurn && displayXO[index] == '') {
+        displayXO[index] = 'O';
+      }
+      if (!oTurn && displayXO[index] == '') {
+        displayXO[index] = 'X';
+      }
+      oTurn = !oTurn;
+    });
   }
 }
