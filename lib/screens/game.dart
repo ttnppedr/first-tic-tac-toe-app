@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -20,6 +22,10 @@ class _GameScreenState extends State<GameScreen> {
   String resultDeclaration = '';
   bool winnerFound = false;
 
+  static const maxSeconds = 30;
+  int seconds = maxSeconds;
+  Timer? timer;
+
   static var customFontWhite = GoogleFonts.coiny(
     textStyle: const TextStyle(
       color: Colors.white,
@@ -27,6 +33,25 @@ class _GameScreenState extends State<GameScreen> {
       fontSize: 28,
     ),
   );
+
+  void startTimer() {
+    timer = Timer.periodic(Duration(seconds: 1), (_) {
+      setState(() {
+        if (seconds > 0) {
+          seconds--;
+        } else {
+          stopTimer();
+        }
+      });
+    });
+  }
+
+  void stopTimer() {
+    resetTimer();
+    timer?.cancel();
+  }
+
+  void resetTimer() => seconds = maxSeconds;
 
   @override
   Widget build(BuildContext context) {
@@ -106,22 +131,7 @@ class _GameScreenState extends State<GameScreen> {
                   children: [
                     Text(resultDeclaration, style: customFontWhite),
                     SizedBox(height: 10),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                      ),
-                      onPressed: () {
-                        _clearBoard();
-                      },
-                      child: Text(
-                        'Play Again',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                    )
+                    _buildTimer()
                   ],
                 ),
               ),
@@ -132,18 +142,69 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  Widget _buildTimer() {
+    final isRunning = timer == null ? false : timer!.isActive;
+
+    return isRunning
+        ? SizedBox(
+            width: 100,
+            height: 100,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CircularProgressIndicator(
+                  value: 1 - seconds / maxSeconds,
+                  valueColor: AlwaysStoppedAnimation(Colors.white),
+                  strokeWidth: 8,
+                  backgroundColor: MainColor.accentColor,
+                ),
+                Center(
+                  child: Text(
+                    '$seconds',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 50,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        : ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(
+                horizontal: 32,
+                vertical: 16,
+              ),
+            ),
+            onPressed: () {
+              startTimer();
+              _clearBoard();
+            },
+            child: Text(
+              'Play Again',
+              style: TextStyle(fontSize: 20),
+            ),
+          );
+  }
+
   void _tapped(int index) {
-    setState(() {
-      if (oTurn && displayXO[index] == '') {
-        displayXO[index] = 'O';
-      }
-      if (!oTurn && displayXO[index] == '') {
-        displayXO[index] = 'X';
-      }
-      filledBoxes++;
-      oTurn = !oTurn;
-      _checkWinner();
-    });
+    final isRunning = timer == null ? false : timer!.isActive;
+    if (isRunning) {
+      setState(() {
+        if (oTurn && displayXO[index] == '') {
+          displayXO[index] = 'O';
+        }
+        if (!oTurn && displayXO[index] == '') {
+          displayXO[index] = 'X';
+        }
+        filledBoxes++;
+        oTurn = !oTurn;
+        _checkWinner();
+      });
+    }
   }
 
   void _checkWinner() {
